@@ -1,5 +1,7 @@
 # seleksi-lab-ai-2025
 
+https://archive.ics.uci.edu/dataset/963/ur3+cobotops
+
 ## Supervised Learning (Bagian 2)
 - [ ] KNN
 - [ ] LogReg/SoftReg/PolyReg (tulis yang dikerjain aja)

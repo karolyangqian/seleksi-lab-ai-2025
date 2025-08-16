@@ -1,7 +1,8 @@
 import numpy as np
+from scipy import stats
 
 class KNNClassifier:
-    def __init__(self, k:int=1, distance_method:str="euclidean"):
+    def __init__(self, k:int=1, distance_method:str="euclidean", p:int=3):
         """
         Parameters
         ----------
@@ -16,6 +17,7 @@ class KNNClassifier:
         """
         self.k = k
         self.distance_method = distance_method
+        self.p = p
         
     def fit(self, X:np.ndarray, y:np.ndarray):
         """
@@ -29,7 +31,7 @@ class KNNClassifier:
         self.X_train = X
         self.y_train = y
         
-    def predict(self, X:np.ndarray) -> np.ndarray:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -39,27 +41,46 @@ class KNNClassifier:
         Returns
         -------
         np.ndarray
-            Label yang diprediksi.
+            Label hasil prediksi.
         """
-        distances = []
-        for i in range(len(self.X_train)):
-            if self.distance_method == "euclidean":
-                dist = self.euclidean_distance(X, self.X_train[i])
-            elif self.distance_method == "manhattan":
-                dist = self.manhattan_distance(X, self.X_train[i])
-            elif self.distance_method == "minkowski":
-                dist = self.minkowski_distance(X, self.X_train[i])
-            distances.append((dist, self.y_train[i]))
-        distances.sort(key=lambda x: x[0])
-        neighbors = distances[:self.k]
-        labels = [label for _, label in neighbors]
-        return np.array(labels)
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
 
-    def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
-        return np.sqrt(np.sum((a - b) ** 2))
-    
-    def manhattan_distance(self, a: np.ndarray, b: np.ndarray) -> float:
-        return np.sum(np.abs(a - b))
-    
-    def minkowski_distance(self, a: np.ndarray, b: np.ndarray, p: int = 3) -> float:
-        return np.sum(np.abs(a - b) ** p) ** (1 / p)
+        # Calculate distances as ndarray with shape (n_X, n_X_train)
+        if self.distance_method == "euclidean":
+            distances = self.euclidean_distance(X, self.X_train)
+        elif self.distance_method == "manhattan":
+            distances = self.manhattan_distance(X, self.X_train)
+        elif self.distance_method == "minkowski":
+            distances = self.minkowski_distance(X, self.X_train, self.p)
+        
+        # Take k nearest neighbors for each sample (used argpartition because it has O(n) complexity compared to sort that has O(n log n))
+        k_nearest_indices = np.argpartition(distances, self.k, axis=1)[:, :self.k]
+        
+        predictions = stats.mode(self.y_train[k_nearest_indices], axis=1).mode[0]
+
+        return predictions
+
+    def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        """
+        Returns
+        -------
+        np.ndarray with shape (a, b)
+        """
+        return np.sqrt(np.sum((a[:, np.newaxis, :] - b[np.newaxis, :, :]) ** 2, axis=2))
+
+    def manhattan_distance(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        """
+        Returns
+        -------
+        np.ndarray with shape (a, b)
+        """
+        return np.sum(np.abs(a[:, np.newaxis, :] - b[np.newaxis, :, :]), axis=2)
+
+    def minkowski_distance(self, a: np.ndarray, b: np.ndarray, p: int = 3) -> np.ndarray:
+        """
+        Returns
+        -------
+        np.ndarray with shape (a, b)
+        """
+        return np.sum(np.abs(a[:, np.newaxis, :] - b[np.newaxis, :, :]) ** p, axis=2) ** (1 / p)

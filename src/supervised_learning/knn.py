@@ -18,6 +18,7 @@ class KNNClassifier:
         self.k = k
         self.distance_method = distance_method
         self.p = p
+        self.proba = None
         
     def fit(self, X:np.ndarray, y:np.ndarray):
         """
@@ -53,21 +54,57 @@ class KNNClassifier:
             distances = self.manhattan_distance(X, self.X_train)
         elif self.distance_method == "minkowski":
             distances = self.minkowski_distance(X, self.X_train, self.p)
+        
         # Take k nearest neighbors for each sample (used argpartition because it has O(n) complexity compared to sort that has O(n log n))
         k_nearest_indices = np.argpartition(distances, self.k, axis=1)[:, :self.k]
 
         if self.y_train.ndim == 1:
             k_nearest_labels = self.y_train[k_nearest_indices]
-            predictions = np.array(stats.mode(k_nearest_labels, axis=1).mode.flatten())
+            
+            classes = np.unique(self.y_train)
+            
+            # self.proba will have shape (n_samples, n_classes)
+            self.proba = np.array([
+                np.mean(k_nearest_labels == c, axis=1) for c in classes
+            ]).T
+            
+            predictions = classes[np.argmax(self.proba, axis=1)]
+
         elif self.y_train.ndim > 1:
-            predictions = []
-            for i in range(self.y_train.shape[1]):
-                predictions.append(stats.mode(self.y_train[k_nearest_indices, i], axis=1).mode)
-            predictions = np.array(predictions).T
+            n_samples = X.shape[0]
+            n_labels = self.y_train.shape[1]
+            predictions = np.zeros((n_samples, n_labels))
+            self.proba = None
+
+            for i in range(n_labels):
+                k_nearest_labels = self.y_train[k_nearest_indices, i]
+                classes = np.unique(self.y_train[:, i])
+                
+                proba_current_label = np.array([
+                    np.mean(k_nearest_labels == c, axis=1) for c in classes
+                ]).T
+                
+                predictions[:, i] = classes[np.argmax(proba_current_label, axis=1)]
+
+                if i == 0:
+                    self.proba = proba_current_label
         else:
             predictions = np.zeros(X.shape[0])
+            self.proba = np.zeros((X.shape[0], 1))
 
         return predictions
+    
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """
+        Predict class probabilities for X.
+        
+        Returns
+        -------
+        np.ndarray
+            The class probabilities of the input samples. Shape (n_samples, n_classes)
+        """
+        self.predict(X)
+        return self.proba
 
     def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         """

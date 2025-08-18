@@ -2,7 +2,7 @@ import numpy as np
 from scipy import stats
 
 class KNNClassifier:
-    def __init__(self, k:int=1, distance_method:str="euclidean", p:int=3):
+    def __init__(self, k:int=5, distance_method:str="euclidean", p:int=3):
         """
         Parameters
         ----------
@@ -28,8 +28,8 @@ class KNNClassifier:
         y : np.ndarray
             Label target fitting model.
         """
-        self.X_train = X
-        self.y_train = y
+        self.X_train = X.copy()
+        self.y_train = y.copy()
         
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -53,11 +53,20 @@ class KNNClassifier:
             distances = self.manhattan_distance(X, self.X_train)
         elif self.distance_method == "minkowski":
             distances = self.minkowski_distance(X, self.X_train, self.p)
-        
+        print("Distance shape:", distances.shape)
         # Take k nearest neighbors for each sample (used argpartition because it has O(n) complexity compared to sort that has O(n log n))
         k_nearest_indices = np.argpartition(distances, self.k, axis=1)[:, :self.k]
-        
-        predictions = stats.mode(self.y_train[k_nearest_indices], axis=1).mode[0]
+        print("K nearest indices shape:", k_nearest_indices.shape)
+
+        target_count = 1
+        if self.y_train.ndim > 1:
+            target_count = self.y_train.shape[1]
+        predictions = []
+        for i in range(target_count):
+            predictions.append(stats.mode(self.y_train[k_nearest_indices, i], axis=1).mode)
+        predictions = np.array(predictions).T
+        print(predictions)
+        print("Predictions shape:", predictions.shape)
 
         return predictions
 

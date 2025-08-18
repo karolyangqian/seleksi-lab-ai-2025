@@ -53,20 +53,19 @@ class KNNClassifier:
             distances = self.manhattan_distance(X, self.X_train)
         elif self.distance_method == "minkowski":
             distances = self.minkowski_distance(X, self.X_train, self.p)
-        print("Distance shape:", distances.shape)
         # Take k nearest neighbors for each sample (used argpartition because it has O(n) complexity compared to sort that has O(n log n))
         k_nearest_indices = np.argpartition(distances, self.k, axis=1)[:, :self.k]
-        print("K nearest indices shape:", k_nearest_indices.shape)
 
-        target_count = 1
-        if self.y_train.ndim > 1:
-            target_count = self.y_train.shape[1]
-        predictions = []
-        for i in range(target_count):
-            predictions.append(stats.mode(self.y_train[k_nearest_indices, i], axis=1).mode)
-        predictions = np.array(predictions).T
-        print(predictions)
-        print("Predictions shape:", predictions.shape)
+        if self.y_train.ndim == 1:
+            k_nearest_labels = self.y_train[k_nearest_indices]
+            predictions = np.array(stats.mode(k_nearest_labels, axis=1).mode.flatten())
+        elif self.y_train.ndim > 1:
+            predictions = []
+            for i in range(self.y_train.shape[1]):
+                predictions.append(stats.mode(self.y_train[k_nearest_indices, i], axis=1).mode)
+            predictions = np.array(predictions).T
+        else:
+            predictions = np.zeros(X.shape[0])
 
         return predictions
 

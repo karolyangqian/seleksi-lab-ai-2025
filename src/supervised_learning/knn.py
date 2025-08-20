@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import stats
 
 class KNNClassifier:
     def __init__(self, k:int=5, distance_method:str="euclidean", p:int=3):

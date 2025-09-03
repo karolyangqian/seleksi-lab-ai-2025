@@ -84,9 +84,9 @@ class LogisticRegressionClassifier:
             w -= learning_rate * grad_w
             b -= learning_rate * grad_b
             
-            # Verbose
-            if i % 100 == 0:
-                print(f"Iteration {i}: Cost {self.cost_function(X, y, w, b)}")
+            # # Verbose
+            # if i % 100 == 0:
+            #     print(f"Iteration {i}: Cost {self.cost_function(X, y, w, b)}")
 
         self.W = w
         self.b = b

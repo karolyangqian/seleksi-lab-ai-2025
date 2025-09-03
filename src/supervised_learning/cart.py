@@ -1,4 +1,4 @@
-from matplotlib.pylab import Literal
+from typing import Literal
 import numpy as np
 from collections import Counter
 

@@ -1,10 +1,11 @@
 # seleksi-lab-ai-2025
 
+Dataset yang digunakan:
 https://archive.ics.uci.edu/dataset/963/ur3+cobotops
 
 ## Supervised Learning (Bagian 2)
-- [ ] KNN
-- [ ] LogReg/SoftReg/PolyReg (tulis yang dikerjain aja)
+- [x] KNN
+- [x] LogReg/SoftReg/PolyReg (tulis yang dikerjain aja)
 - [x] Gaussian Naive Bayes *(jika task regresi, beri keterangan saja)*
 - [x] CART
 - [x] SVM
@@ -15,12 +16,12 @@ https://archive.ics.uci.edu/dataset/963/ur3+cobotops
 
 ## Unsupervised Learning (Bagian 3)
 - [ ] K-MEANS
-- [x] DBSCAN
-- [x] PCA
+- [ ] DBSCAN
+- [ ] PCA
 
 **Bonus yang diimplementasikan:**
 - … (list bonus)
 
 ## Reinforcement Learning (Bagian 4)
 - [ ] Q-LEARNING
-- [x] SARSA
+- [ ] SARSA

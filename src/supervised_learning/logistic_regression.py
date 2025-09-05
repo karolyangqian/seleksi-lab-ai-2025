@@ -29,7 +29,6 @@ class LogisticRegressionClassifier:
 
         cost = (-1 / m) * np.sum(y * np.log(g) + (1 - y) * np.log(1 - g))
 
-        # Add regularization term
         if self.regularization_term == 'l2':
             cost += (self.lambda_reg / (2 * m)) * np.sum(w**2)
         elif self.regularization_term == 'l1':
@@ -44,13 +43,11 @@ class LogisticRegressionClassifier:
         
         error = g - y
         
-        # Apply sample weights to the error
         weighted_error = error * sample_weights
         
-        grad_w = (1 / m) * (X.T @ weighted_error)
-        grad_b = (1 / m) * np.sum(weighted_error)
+        grad_w = (X.T @ weighted_error) / m
+        grad_b = np.sum(weighted_error) / m
 
-        # Add regularization gradient
         if self.regularization_term == 'l2':
             grad_w += (self.lambda_reg / m) * w
         elif self.regularization_term == 'l1':
@@ -62,7 +59,6 @@ class LogisticRegressionClassifier:
         w = np.zeros(X.shape[1])
         b = 0
         
-        # Calculate class weights
         sample_weights = np.ones(len(y))
         if self.class_weight is not None:
             if self.class_weight == 'balanced':
@@ -75,7 +71,6 @@ class LogisticRegressionClassifier:
             else:
                 class_weights = self.class_weight
             
-            # Apply weights to samples
             for i in range(len(y)):
                 sample_weights[i] = class_weights[y[i]]
 

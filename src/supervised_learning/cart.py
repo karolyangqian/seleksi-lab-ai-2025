@@ -22,7 +22,7 @@ class DecisionTreeClassifier:
         if criterion not in ('gini', 'entropy'):
             raise ValueError("criterion must be 'gini' or 'entropy'")
         self.criterion = criterion
-        self.random_state = np.random.RandomState(random_state) if random_state is not None else np.random
+        self.random_state = np.random.RandomState(random_state)
         self.root = None
         self.n_features_ = None
         self.classes_ = None
@@ -43,7 +43,6 @@ class DecisionTreeClassifier:
         n_samples, n_feats = X.shape
         num_labels = len(np.unique(y))
 
-        # stopping conditions
         if (n_samples < self.min_samples_split) or (depth >= self.max_depth) or (num_labels == 1):
             leaf_value = self._most_common_label(y)
             proba = self._leaf_proba(y)
@@ -53,13 +52,11 @@ class DecisionTreeClassifier:
 
         best_feat, best_thresh = self._best_split(X, y, feat_idxs)
 
-        # if no valid split found -> make leaf
         if best_feat is None:
             leaf_value = self._most_common_label(y)
             proba = self._leaf_proba(y)
             return Node(value=leaf_value, proba=proba)
 
-        # partition
         left_mask = X[:, best_feat] <= best_thresh
         right_mask = ~left_mask
 
@@ -79,11 +76,9 @@ class DecisionTreeClassifier:
             X_sorted = X_col[sort_idx]
             y_sorted = y[sort_idx]
 
-            # counts for cumulative left and right
             right_counter = Counter(y_sorted)
             left_counter = Counter()
 
-            # iterate possible split positions (only where value changes)
             for i in range(1, n):
                 label = y_sorted[i-1]
                 left_counter[label] += 1
@@ -91,7 +86,6 @@ class DecisionTreeClassifier:
                 if right_counter[label] == 0:
                     del right_counter[label]
 
-                # skip if same feature value -> no meaningful split
                 if X_sorted[i] == X_sorted[i-1]:
                     continue
 
@@ -100,24 +94,20 @@ class DecisionTreeClassifier:
                 if n_left < self.min_samples_split or n_right < self.min_samples_split:
                     continue
 
-                # compute impurity for children
                 impurity_left = self._impurity_from_counts(left_counter, n_left)
                 impurity_right = self._impurity_from_counts(right_counter, n_right)
 
-                # weighted impurity
                 child_impurity = (n_left / n) * impurity_left + (n_right / n) * impurity_right
                 information_gain = parent_impurity - child_impurity
 
                 if information_gain > best_gain:
                     best_gain = information_gain
                     split_idx = feat
-                    # threshold: midpoint between the two adjacent values
                     split_thresh = (X_sorted[i] + X_sorted[i-1]) / 2.0
 
         return split_idx, split_thresh
 
     def _impurity(self, y):
-        # compute impurity of array y
         counter = Counter(y)
         n = len(y)
         return self._impurity_from_counts(counter, n)
